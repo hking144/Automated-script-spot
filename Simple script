@@ -1,0 +1,71 @@
+using NUnit.Framework;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Firefox;
+using OpenQA.Selenium.Support.UI;
+using System;
+using System.Collections.Generic;
+
+namespace UnitTestProject1 {
+    [TestFixture]
+    public class UnitTest1 {
+        List<string> tabs = new List<string>();
+
+        IWebDriver driver;
+        public void WaitSeconds(double delay, double interval) {
+            // Causes the WebDriver to wait for at least a fixed delay
+            var now = DateTime.Now;
+            var wait = new WebDriverWait(driver, TimeSpan.FromMilliseconds(delay));
+            wait.PollingInterval = TimeSpan.FromMilliseconds(interval);
+            wait.Until(wd => (DateTime.Now - now) - TimeSpan.FromMilliseconds(delay) > TimeSpan.Zero);
+        }
+        [SetUp]
+        public void TestSetUp() {
+            driver = new FirefoxDriver();
+            driver.Navigate().GoToUrl("https://hayden-king.webflow.io/");
+            tabs.Add(driver.CurrentWindowHandle);
+        }
+        [Test]
+        public void TestMethod() {
+            var waitTwenty = new WebDriverWait(driver, new TimeSpan(0, 0, 20));
+
+            WebDriverWait waitFiveCheck = new WebDriverWait(driver, timeout: TimeSpan.FromSeconds(10)) {
+                PollingInterval = TimeSpan.FromSeconds(5),
+            };
+            waitFiveCheck.IgnoreExceptionTypes(typeof(NoSuchElementException));
+
+            #region My Website
+            #region Go to elements
+            waitTwenty.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.XPath("/html/body/div[5]/div/h1[2]"))).Click();
+
+            driver.FindElement(By.XPath("/html/body/div[6]/div[2]/div[2]/div/div/div[4]/a/img")).Click();
+            WaitSeconds(3000, 5);
+            waitTwenty.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementExists(By.XPath("/html/body/div[4]/div[2]/div/img[1]")));
+            #endregion
+
+            #region Take Screenshot
+            Screenshot ss = ((ITakesScreenshot)driver).GetScreenshot();
+
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+            ss.SaveAsFile(path + "/SnapShot.jpeg");
+            #endregion
+            #endregion
+
+            #region youtube and wow
+            driver.Navigate().GoToUrl("https://www.youtube.com/");
+            waitTwenty.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.CssSelector("ytd-searchbox.style-scope")));
+
+            var searchBar = driver.FindElement(By.CssSelector("input#search"));
+            searchBar.Click();
+            searchBar.SendKeys("owen wilson wow");
+            driver.FindElement(By.Id("search-icon-legacy")).Click();
+            waitTwenty.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.Id("video-title")));
+            driver.FindElement(By.Id("video-title")).Click();
+            #endregion
+        }
+        [TearDown]
+        public void TearDown() {            
+           // driver.Quit();
+        }
+    }
+}
